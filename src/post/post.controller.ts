@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -31,5 +33,18 @@ export class PostController {
   @Get('/:id')
   getTopicById(@Param('id', ParseIntPipe) id: number) {
     return this.postService.getPostById(id);
+  }
+
+  @Put('/:id')
+  updatePostById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('body') postBody,
+    @GetUser() user: User,
+  ) {
+    return this.postService.updatePostById(id, postBody, user);
+  }
+  @Delete('/:id')
+  deletePost(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
+    return this.postService.deletePostById(id, user);
   }
 }

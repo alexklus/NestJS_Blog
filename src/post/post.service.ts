@@ -1,6 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TransformPlainToClass } from 'class-transformer';
 import { User } from 'src/user/user.entity';
 import { PostDto } from './dto/post.dto';
 import { Post } from './post.entity';
@@ -32,9 +35,43 @@ export class PostService {
   async getPostById(id: number): Promise<Post> {
     const post = await this.postRepository.findOne(id);
     if (!post) {
-      throw new NotFoundException(`Topic with id ${id} not found!`);
+      throw new NotFoundException(`Post with id ${id} not found!`);
     } else {
       return post;
     }
+  }
+
+  async updatePostById(
+    id: number,
+    postBody: string,
+    user: User,
+  ): Promise<Post> {
+    const post = await this.getPostById(id);
+
+    if (!this.validateAuthor(post.user, user)) {
+      throw new UnauthorizedException('Unable to update post!');
+    } else {
+      post.body = postBody;
+      await post.save();
+      return post;
+    }
+  }
+  async deletePostById(id: number, user: User): Promise<void> {
+    const post = await this.getPostById(id);
+
+    if (!this.validateAuthor(post.user, user)) {
+      throw new UnauthorizedException('delete to update post!');
+    } else {
+      await this.postRepository.remove(post);
+    }
+  }
+
+  private validateAuthor(postAuthor: User, authenticatedUser: User): boolean {
+    return (
+      postAuthor &&
+      authenticatedUser &&
+      postAuthor.id === authenticatedUser.id &&
+      postAuthor.username === authenticatedUser.username
+    );
   }
 }
