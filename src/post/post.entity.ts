@@ -20,7 +20,7 @@ export class Post extends BaseEntity {
   @Column()
   body: string;
 
-  @ManyToOne((type) => User, (user) => user.posts)
+  @ManyToOne((type) => User, (user) => user.posts, { eager: true })
   @JoinColumn()
-  user: Promise<User>;
+  user: User;
 }
